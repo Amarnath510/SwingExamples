@@ -1,0 +1,227 @@
+/* GUI Class */
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+
+public class TableExample {
+  
+	public static void main(String[] args) {
+		Runnable r = new Runnable() {
+			
+			@Override
+			public void run() {
+				new TableExample().createUI();
+			}
+		};
+		
+		EventQueue.invokeLater(r);
+	}
+	
+	private void createUI() {
+
+		JFrame frame = new JFrame();
+		frame.setLayout(new BorderLayout());
+		
+		JButton addBtn = new JButton("Add");
+		JButton delBtn = new JButton("Delete");
+		JPanel buttonPnl = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		buttonPnl.add(addBtn);
+		buttonPnl.add(delBtn);
+		
+		final StudentTableModel tableModel = new StudentTableModel();
+		JTable table = new JTable();
+		table.setModel(tableModel);
+		table.getTableHeader().setReorderingAllowed(false);
+		
+		addBtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				StudentDO do1 = new StudentDO();
+				do1.setName("Student " + tableModel.getRowCount());
+				do1.setAge(tableModel.getRowCount());
+				tableModel.addRow(do1);
+			}
+		});
+		
+		delBtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tableModel.deleteRow();
+			}
+		});
+		
+		frame.add(table.getTableHeader(), BorderLayout.NORTH);
+		frame.add(table, BorderLayout.CENTER);
+		frame.add(buttonPnl, BorderLayout.SOUTH);
+		
+		frame.setTitle("JTable Example.");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.pack();
+		frame.setVisible(true);
+	}
+}
+
+
+/* Table Model Class */
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.table.AbstractTableModel;
+
+public class StudentTableModel extends AbstractTableModel {
+
+  private static final long serialVersionUID = 1L;
+	
+	private List<StudentDO> data;
+	private List<String> columnNames;
+	
+	public StudentTableModel() {
+		data = getTableDataList();
+		columnNames = getColumnNamesList();
+	}
+	
+	@Override
+	public Class<?> getColumnClass(int columnIndex) {
+		switch (columnIndex) {
+		case 0:
+			return Boolean.class;
+		case 1: 
+			return String.class;
+		case 2: 
+			return Integer.class;
+		default:
+			return String.class;
+		}
+	}
+	
+	@Override
+	public boolean isCellEditable(int rowIndex, int columnIndex) {
+		return columnIndex == 0 ? true : false;
+	}
+	
+	@Override
+	public String getColumnName(int column) {
+		return columnNames.get(column);
+	}
+	
+	@Override
+	public int getRowCount() {
+		return data.size();
+	}
+
+	@Override
+	public int getColumnCount() {
+		return columnNames.size();
+	}
+
+	@Override
+	public Object getValueAt(int rowIndex, int columnIndex) {
+		switch (columnIndex) {
+		case 0:
+			return data.get(rowIndex).isSelect();
+		case 1:
+			return data.get(rowIndex).getName();
+		case 2:
+			return data.get(rowIndex).getAge();
+		default:
+			return null;
+		}
+	}
+	
+	@Override
+	public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+		switch (columnIndex) {
+		case 0:
+			data.get(rowIndex).setSelect((Boolean) aValue);
+			break;
+		case 1:
+			data.get(rowIndex).setName(aValue != null ? aValue.toString() : null);
+			break;
+		case 2:
+			data.get(rowIndex).setAge(aValue != null ? Integer.parseInt(aValue.toString()) : null);
+			break;
+		default:
+			break;
+		}
+	}
+	
+	public void addRow(StudentDO do1) {
+		data.add(do1);
+		fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
+	}
+	
+	public void deleteRow() {
+		for(int rowIndex = data.size() - 1; rowIndex >= 0; rowIndex--) {
+			if(data.get(rowIndex).isSelect()) {
+				data.remove(rowIndex);
+			}
+		}
+		
+		fireTableDataChanged();
+	}
+	
+	private List<StudentDO> getTableDataList() {
+		
+		List<StudentDO> list = new ArrayList<StudentDO>();
+		
+		StudentDO do1 = null;
+		for(int i = 0; i < 5; i++) {
+			
+			do1 = new StudentDO();
+			do1.setSelect(false);
+			do1.setName("Student " + i);
+			do1.setAge(i);
+			
+			list.add(do1);
+		}
+		
+		return list;
+	}
+	
+	private List<String> getColumnNamesList() {
+		List<String> names = new ArrayList<String>();
+		
+		names.add("Select");
+		names.add("Name");
+		names.add("Age");
+		
+		return names;
+	}
+}
+
+/*Student POJO*/
+public class StudentDO {
+  
+	private boolean select;
+	private String name;
+	private int age;
+	
+	public boolean isSelect() {
+		return select;
+	}
+	public void setSelect(boolean select) {
+		this.select = select;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public int getAge() {
+		return age;
+	}
+	public void setAge(int age) {
+		this.age = age;
+	}
+}
